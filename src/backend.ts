@@ -21,7 +21,12 @@ export const app = new Elysia()
       set.status = 204;
     },
     { params: chatParams },
-  );
+  )
+  .post("/api/chat/:chatId/meteor", 
+    async ({ params, set }) => {
+    await actors.ChatHistory.get(params.chatId).meteorHitsDatacenter();
+    set.status = 204;
+  }, { params: chatParams });
 
 if (import.meta.main) {
   app.listen({ hostname: "127.0.0.1", port: Number(process.env.PORT ?? 8000) });

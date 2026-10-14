@@ -9,11 +9,12 @@ export function createChat(chatId) {
   }
 
   function setConnection(state) {
-    const label = { connecting: "Connecting", connected: "Connected" }[state];
+    const label = { connecting: "Connecting", connected: "Connected", crashed: "Actor crashed" }[state];
     element.dataset.loading = String(state === "connecting");
     $("connection").dataset.state = state;
     $("connection").title = label;
     $("connection-label").textContent = label;
+    $("crash").hidden = state !== "crashed";
   }
 
   function addMessage(role, text, provisional = false) {

@@ -1,6 +1,6 @@
 /** One actor owns each conversation, its sockets, and its agent loop. */
 import { Agent } from "@mastra/core/agent";
-import { Actor, type ActorSocket, Persisted } from "durable-actors";
+import { Actor, type ActorSocket, Persisted, Interleave } from "durable-actors";
 
 export type Message =
   | { role: "user"; content: string }
@@ -35,6 +35,7 @@ export class ChatHistory extends Actor<null, string, ChatEvent> {
   }
 
   // Keep the default ordered execution: a turn completes before the next begins.
+  @Interleave
   async onMessage(_socket: ActorSocket<null, ChatEvent>, message: string) {
     if (!message.trim()) return;
     this.broadcast({ type: "start", prompt: message });
@@ -48,5 +49,9 @@ export class ChatHistory extends Actor<null, string, ChatEvent> {
       { role: "assistant", content: await result.text },
     );
     this.broadcast({ type: "done" });
+  }
+
+  async meteorHitsDatacenter() {
+    process.exit(1);
   }
 }

@@ -24,6 +24,7 @@ export const actors = {
                 actorId,
                 [
                     { name: "load", result: "value" },
+                    { name: "meteorHitsDatacenter", result: "void" },
                     { name: "reset", result: "void" }
                 ],
                 transport

@@ -55,6 +55,10 @@ export declare namespace actors {
                 Args: Parameters<Stub["load"]>
                 Result: Awaited<ReturnType<Stub["load"]>>
             }
+            ["meteorHitsDatacenter"]: {
+                Args: Parameters<Stub["meteorHitsDatacenter"]>
+                Result: Awaited<ReturnType<Stub["meteorHitsDatacenter"]>>
+            }
             ["reset"]: {
                 Args: Parameters<Stub["reset"]>
                 Result: Awaited<ReturnType<Stub["reset"]>>
@@ -71,6 +75,10 @@ export declare namespace actors {
             namespace load {
                 type Args = $MethodTypes["load"]["Args"]
                 type Result = $MethodTypes["load"]["Result"]
+            }
+            namespace meteorHitsDatacenter {
+                type Args = $MethodTypes["meteorHitsDatacenter"]["Args"]
+                type Result = $MethodTypes["meteorHitsDatacenter"]["Result"]
             }
             namespace reset {
                 type Args = $MethodTypes["reset"]["Args"]
