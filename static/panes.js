@@ -14,7 +14,12 @@ function activate(pane) {
   history.replaceState(null, "", url);
 }
 
-function addPane(room = crypto.randomUUID()) {
+function newChatId() {
+  const suffix = Array.from(crypto.getRandomValues(new Uint8Array(8)), byte => (byte % 36).toString(36)).join("");
+  return `chat_${suffix}`;
+}
+
+function addPane(room = newChatId()) {
   const chat = createChat(room);
   chats.set(chat.element, chat);
   workspace.dataset.single = String(chats.size === 1);
