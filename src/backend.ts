@@ -7,15 +7,11 @@ import { actors } from "../generated/index.js";
 const chatParams = t.Object({ chatId: t.String({ pattern: "^[a-zA-Z0-9_-]{1,64}$" }) });
 
 export const app = new Elysia()
-  .use(staticPlugin({ assets: "static", prefix: "/static", maxAge: 0 }))
+  .use(staticPlugin({ assets: "static", prefix: "/static" }))
   .get("/", () => Bun.file("static/index.html"))
   .post(
     "/api/chat/:chatId/socket",
-    async ({ params, set }) => {
-      const grant = await actors.ChatHistory.prepareWebsocket({ actorId: params.chatId, metadata: null });
-      set.headers["Cache-Control"] = "no-store";
-      return grant;
-    },
+    ({ params }) => actors.ChatHistory.prepareWebsocket({ actorId: params.chatId, metadata: null }),
     { params: chatParams },
   )
   .post(
