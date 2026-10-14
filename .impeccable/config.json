@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "static/index.html"
+        ],
+        "createdAt": "2026-10-13T19:47:46.830Z",
+        "reason": "Agent review: #connection is an intentional 8px status dot. Its only text is visually hidden by .sr-only, so there is no visible text requiring padding."
+      }
+    ]
+  }
+}

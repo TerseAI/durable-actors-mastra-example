@@ -1,0 +1,3 @@
+Generated with the built-in imagegen tool; transparent_background: true.
+
+Use case: logo-brand. Asset type: small app mascot logo and loading-screen mark for a minimal white chat interface. Primary request: one cute armadillo, with a round segmented shell, small friendly face, dot eye, little ears and tiny feet, tail curling gently behind. Side view facing right, compact cohesive silhouette. Style: professionally drawn flat vector-style logo, charcoal outlines and warm soft gray shell with a restrained dusty peach inner ear. Clean bold shapes that read at 36 pixels, charming rather than detailed. Centered, fills most of a square canvas. Genuinely transparent background, no backdrop, no shadows, no text, no border, no extra objects. Single complete armadillo only.
