@@ -34,9 +34,8 @@ export class ChatHistory extends Actor<null, string, ChatEvent> {
     socket.send({ type: "history", messages: this.messages });
   }
 
-  // Keep the default ordered execution: a turn completes before the next begins.
   @Interleave
-  async onMessage(_socket: ActorSocket<null, ChatEvent>, message: string) {
+  async prompt(message: string) {
     if (!message.trim()) return;
     this.broadcast({ type: "start", prompt: message });
 

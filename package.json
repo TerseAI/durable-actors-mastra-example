@@ -10,14 +10,15 @@
   },
   "packageManager": "bun@1.4.2",
   "scripts": {
-    "dev": "bun --watch src/backend.ts",
+    "dev": "bun scripts/dev.ts",
+    "dev:backend": "bun --watch src/backend.ts",
+    "dev:web": "bun run --cwd web dev",
     "start": "bun src/backend.ts",
     "dev:actors": "durable-actors dev",
     "generate": "durable-actors generate src/actors.ts",
     "check": "tsc --noEmit"
   },
   "dependencies": {
-    "@elysia/static": "1.4.11",
     "@mastra/core": "1.76.0",
     "durable-actors": "0.8.0",
     "elysia": "1.4.30"

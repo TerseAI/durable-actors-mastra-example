@@ -10,6 +10,7 @@ interface $ChatHistoryContract {
     Methods: {
         load(): Promise<Message[]>
         meteorHitsDatacenter(): Promise<void>
+        prompt(message: string): Promise<void>
         reset(): Promise<void>
     }
 }

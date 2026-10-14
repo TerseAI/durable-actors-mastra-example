@@ -5,7 +5,6 @@
     "": {
       "name": "durable-actors-mastra-chat",
       "dependencies": {
-        "@elysia/static": "1.4.11",
         "@mastra/core": "1.76.0",
         "durable-actors": "0.8.0",
         "elysia": "1.4.30",
@@ -43,8 +42,6 @@
     "@date-fns/tz": ["@date-fns/tz@1.5.0", "", {}, "sha512-lwYN/vDPeNRULcepoE/LO2Pgx+7/RV+S9ARfbc9lr2DtGkOD7pAiruHvbR1RX3Qyf6ja47EWJDMsNK5vK08DJg=="],
 
     "@dmsnell/diff-match-patch": ["@dmsnell/diff-match-patch@1.1.0", "", {}, "sha512-yejLPmM5pjsGvxS9gXablUSbInW7H976c/FJ4iQxWIm7/38xBySRemTPDe34lhg1gVLbJntX0+sH0jYfU+PN9A=="],
-
-    "@elysia/static": ["@elysia/static@1.4.11", "", { "peerDependencies": { "elysia": ">= 1.4.0" } }, "sha512-L3PN8V+cgz9Oz9kTow7ed3DHHCTHb9ZqZZDLxmKhrIKcFmWvjqzTm9TcMR2aLKjjls+QMSGuB7ZyaO+usIXovA=="],
 
     "@esbuild/aix-ppc64": ["@esbuild/aix-ppc64@0.28.2", "", { "os": "aix", "cpu": "ppc64" }, "sha512-XExcO+dvLKvVtNTibSTBej1NCAbaGhWn9Ww1ZPx80qsahhPFe/8jgWP0IchNe0F3HwkU7n8ejhH8bjonqht8mQ=="],
 

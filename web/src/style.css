@@ -8,6 +8,7 @@
   --focus: #777;
   --connecting: #b38b00;
   --connected: #24854a;
+  --crashed: #b42318;
 }
 
 /* Base styles and shared controls */
@@ -110,6 +111,10 @@ a {
 
 .connection[data-state="connected"] {
   background: var(--connected);
+}
+
+.connection[data-state="crashed"] {
+  background: var(--crashed);
 }
 
 .panes {
@@ -265,6 +270,11 @@ a {
   color: var(--muted);
 }
 
+.message.interrupted .content:empty::after {
+  content: "Interrupted";
+  color: var(--crashed);
+}
+
 /* Message composer */
 
 .composer-area {
@@ -392,8 +402,12 @@ kbd { margin-right: 4px; font: inherit; font-weight: 600; }
   transition: opacity 180ms ease, visibility 180ms;
 }
 
-.pane[data-loading="true"] .loading { opacity: 1; visibility: visible; }
+.pane[data-state="connecting"] .loading,
+.pane[data-state="crashed"] .loading { opacity: 1; visibility: visible; }
 .loading p { margin: 12px 0 0; color: var(--muted); font-size: 13px; }
+.loading-copy[data-copy="crashed"] { display: none; }
+.pane[data-state="crashed"] .loading-copy[data-copy="connecting"] { display: none; }
+.pane[data-state="crashed"] .loading-copy[data-copy="crashed"] { display: block; }
 .loading-mascot { position: relative; width: 128px; height: 128px; }
 .loading-mascot img { position: relative; z-index: 1; object-fit: contain; }
 .loading-ground {
@@ -406,11 +420,14 @@ kbd { margin-right: 4px; font: inherit; font-weight: 600; }
   background: #ddd;
 }
 
-.pane[data-loading="true"] .loading-mascot img {
+.pane[data-state="connecting"] .loading-mascot img {
   animation: armadillo-scurrying 800ms ease-in-out infinite;
 }
-.pane[data-loading="true"] .loading-ground {
+.pane[data-state="connecting"] .loading-ground {
   animation: ground-shift 800ms ease-in-out infinite;
+}
+.pane[data-state="crashed"] .loading-mascot img {
+  transform: rotate(180deg);
 }
 
 @keyframes armadillo-scurrying {
@@ -423,7 +440,7 @@ kbd { margin-right: 4px; font: inherit; font-weight: 600; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pane[data-loading="true"] .loading-mascot img,
-  .pane[data-loading="true"] .loading-ground { animation: none; }
+  .pane[data-state="connecting"] .loading-mascot img,
+  .pane[data-state="connecting"] .loading-ground { animation: none; }
   .loading { transition-duration: 100ms; }
 }
