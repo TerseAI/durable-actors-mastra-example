@@ -30,15 +30,15 @@ Wait for `Ready`, then start Elysia in another terminal:
 bun run dev
 ```
 
-Open [localhost:8000](http://127.0.0.1:8000). Open the same chat ID in two browser
-tabs to see shared replies. Change the chat ID to start a separate conversation.
+Open [localhost:8000](http://127.0.0.1:8000) to start an independent chat. Open the
+same chat ID in two browser tabs to see shared replies.
 Reload after a reply finishes to restore the saved history.
 Use the reset icon beside **Open** to clear the current chat for everyone in the room.
 
 Press **⌘N** to split the active pane above/below, or **⌘M** to split it side by
 side. The header buttons do the same thing (and work when a browser reserves a
-shortcut). Click a pane to focus it; use **×** to close it. Each new pane opens the
-same chat, so replies stay in sync. Change its chat ID to open a separate room.
+shortcut). Click a pane to focus it; use **×** to close it. Each new pane starts
+an independent chat. Enter the same chat ID in multiple panes to share a room.
 
 Both processes read `.env`. The first actor start downloads the Durable Actors
 runtime. Actor state is stored locally in `.durable-actors/` and survives restarts.

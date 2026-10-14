@@ -14,7 +14,7 @@ function activate(pane) {
   history.replaceState(null, "", url);
 }
 
-function addPane(room) {
+function addPane(room = crypto.randomUUID()) {
   const chat = createChat(room);
   chats.set(chat.element, chat);
   workspace.dataset.single = String(chats.size === 1);
@@ -41,7 +41,7 @@ function reflow(change) {
 
 function split(direction) {
   const current = active;
-  const next = addPane(chats.get(current).room);
+  const next = addPane();
   reflow(() => {
     const group = document.createElement("div");
     group.className = "split";
@@ -92,7 +92,7 @@ window.addEventListener("keydown", event => {
   if (!event.repeat) split(direction);
 }, { capture: true });
 
-const room = new URL(location.href).searchParams.get("chat") || "lobby";
-const first = addPane(/^[a-zA-Z0-9_-]{1,64}$/.test(room) ? room : "lobby");
+const room = new URL(location.href).searchParams.get("chat") || "";
+const first = addPane(/^[a-zA-Z0-9_-]{1,64}$/.test(room) ? room : undefined);
 workspace.append(first);
 activate(first);
