@@ -17,6 +17,7 @@
     "check": "tsc --noEmit"
   },
   "dependencies": {
+    "@elysia/static": "1.4.11",
     "@mastra/core": "1.76.0",
     "durable-actors": "0.8.0",
     "elysia": "1.4.30"

@@ -69,8 +69,9 @@ Browser                 Elysia                  ChatHistory actor          OpenA
    |                                             when handler returns        |
 ```
 
-- [Elysia backend](src/backend.ts): serves the page and static assets, validates chat
-  IDs, and returns uncached connection grants from `POST /api/chat/:chatId/socket`.
+- [Elysia backend](src/backend.ts): serves the homepage and mounts `static/` at
+  `/static/*` using Elysia's static plugin. Validates chat IDs and returns uncached
+  connection grants from `POST /api/chat/:chatId/socket`.
 - [Chat actor](src/actors.ts): sends history on connection, processes one turn at a
   time, and broadcasts `start`, `delta`, and `done` events to the room. Its `reset()`
   method clears saved messages and broadcasts an empty history.
