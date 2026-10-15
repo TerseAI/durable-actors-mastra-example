@@ -23,16 +23,16 @@ export type {
 /**
  * Types for actor state and socket messages.
  * @example
- * type State = actors.ChatHistory.State
+ * type State = actors.PiAgent.State
  */
 export declare namespace actors {
-    namespace ChatHistory {
-        type Metadata = $ActorTypes["ChatHistory"]["Metadata"]
-        type Incoming = $ActorTypes["ChatHistory"]["Incoming"]
-        type Outgoing = $ActorTypes["ChatHistory"]["Outgoing"]
-        type State = $ActorTypes["ChatHistory"]["State"]
+    namespace PiAgent {
+        type Metadata = $ActorTypes["PiAgent"]["Metadata"]
+        type Incoming = $ActorTypes["PiAgent"]["Incoming"]
+        type Outgoing = $ActorTypes["PiAgent"]["Outgoing"]
+        type State = $ActorTypes["PiAgent"]["State"]
         interface Authorization {
-            actorName: "ChatHistory"
+            actorName: "PiAgent"
             actorId: string
             metadata: Metadata
             clientLocation?: {
@@ -45,20 +45,12 @@ export declare namespace actors {
 /**
  * Types for actor state and methods.
  * @example
- * type State = actors.ChatHistory.State
+ * type State = actors.PiAgent.State
  */
 export declare namespace actors {
-    namespace ChatHistory {
-        type Stub = $ActorTypes["ChatHistory"]["Methods"]
+    namespace PiAgent {
+        type Stub = $ActorTypes["PiAgent"]["Methods"]
         interface $MethodTypes {
-            ["load"]: {
-                Args: Parameters<Stub["load"]>
-                Result: Awaited<ReturnType<Stub["load"]>>
-            }
-            ["meteorHitsDatacenter"]: {
-                Args: Parameters<Stub["meteorHitsDatacenter"]>
-                Result: Awaited<ReturnType<Stub["meteorHitsDatacenter"]>>
-            }
             ["prompt"]: {
                 Args: Parameters<Stub["prompt"]>
                 Result: Awaited<ReturnType<Stub["prompt"]>>
@@ -67,23 +59,19 @@ export declare namespace actors {
                 Args: Parameters<Stub["reset"]>
                 Result: Awaited<ReturnType<Stub["reset"]>>
             }
+            ["ringGoesInMountDoom"]: {
+                Args: Parameters<Stub["ringGoesInMountDoom"]>
+                Result: Awaited<ReturnType<Stub["ringGoesInMountDoom"]>>
+            }
         }
         interface Methods extends $MethodTypes {}
         /**
          * Types for a method's arguments and return value.
          * @example
-         * type Args = actors.ChatHistory.Methods["load"]["Args"]
-         * type Result = actors.ChatHistory.Methods["load"]["Result"]
+         * type Args = actors.PiAgent.Methods["prompt"]["Args"]
+         * type Result = actors.PiAgent.Methods["prompt"]["Result"]
          */
         namespace Methods {
-            namespace load {
-                type Args = $MethodTypes["load"]["Args"]
-                type Result = $MethodTypes["load"]["Result"]
-            }
-            namespace meteorHitsDatacenter {
-                type Args = $MethodTypes["meteorHitsDatacenter"]["Args"]
-                type Result = $MethodTypes["meteorHitsDatacenter"]["Result"]
-            }
             namespace prompt {
                 type Args = $MethodTypes["prompt"]["Args"]
                 type Result = $MethodTypes["prompt"]["Result"]
@@ -92,24 +80,28 @@ export declare namespace actors {
                 type Args = $MethodTypes["reset"]["Args"]
                 type Result = $MethodTypes["reset"]["Result"]
             }
+            namespace ringGoesInMountDoom {
+                type Args = $MethodTypes["ringGoesInMountDoom"]["Args"]
+                type Result = $MethodTypes["ringGoesInMountDoom"]["Result"]
+            }
         }
     }
 }
 /**
  * Call actor methods from your backend.
  * @example
- * const actor = actors.ChatHistory.get("actor-id")
+ * const actor = actors.PiAgent.get("actor-id")
  */
 export declare const actors: {
-    ChatHistory: {
-        get(actorId: string, transport?: import("./runtime/index.js").ActorRpcTransport): actors.ChatHistory.Stub
+    PiAgent: {
+        get(actorId: string, transport?: import("./runtime/index.js").ActorRpcTransport): actors.PiAgent.Stub
         /**
          * Allow a frontend connection after your backend checks the user's access.
          * @example
-         * const grant = await actors.ChatHistory.prepareWebsocket({ actorId: "actor-id", metadata })
+         * const grant = await actors.PiAgent.prepareWebsocket({ actorId: "actor-id", metadata })
          */
         prepareWebsocket(
-            authorization: Omit<actors.ChatHistory.Authorization, "actorName">,
+            authorization: Omit<actors.PiAgent.Authorization, "actorName">,
             options?: import("./runtime/index.js").SocketProxyOptions,
             dependencies?: import("./runtime/index.js").SocketProxyDependencies
         ): Promise<import("./runtime/index.js").SocketGrant>
@@ -118,16 +110,16 @@ export declare const actors: {
 /**
  * The actor and connection details approved by your backend.
  * @example
- * const authorization: ActorAuthorization = { actorName: "ChatHistory", actorId: "actor-id", metadata }
+ * const authorization: ActorAuthorization = { actorName: "PiAgent", actorId: "actor-id", metadata }
  */
-export type ActorAuthorization = actors.ChatHistory.Authorization
+export type ActorAuthorization = actors.PiAgent.Authorization
 /**
  * Allow a frontend connection after your backend checks the user's access.
  * @example
- * const grant = await ActorProxy.handle({ actorName: "ChatHistory", actorId: "actor-id", metadata })
+ * const grant = await ActorProxy.handle({ actorName: "PiAgent", actorId: "actor-id", metadata })
  */
 export declare class ActorProxy extends $SocketProxy<{
-    ["ChatHistory"]: import("./runtime/index.js").ProxyActor<actors.ChatHistory.Metadata>
+    ["PiAgent"]: import("./runtime/index.js").ProxyActor<actors.PiAgent.Metadata>
 }> {
     constructor(
         options?: import("./runtime/index.js").SocketProxyOptions,

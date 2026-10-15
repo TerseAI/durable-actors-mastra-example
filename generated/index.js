@@ -14,19 +14,18 @@ export {
 /**
  * Call actor methods from your backend.
  * @example
- * const actor = actors.ChatHistory.get("actor-id")
+ * const actor = actors.PiAgent.get("actor-id")
  */
 export const actors = {
-    ["ChatHistory"]: {
+    ["PiAgent"]: {
         get(actorId, transport) {
             return $createActorStub(
-                "ChatHistory",
+                "PiAgent",
                 actorId,
                 [
-                    { name: "load", result: "value" },
-                    { name: "meteorHitsDatacenter", result: "void" },
-                    { name: "prompt", result: "void" },
-                    { name: "reset", result: "void" }
+                    { name: "prompt", result: "value" },
+                    { name: "reset", result: "void" },
+                    { name: "ringGoesInMountDoom", result: "void" }
                 ],
                 transport
             )
@@ -34,21 +33,21 @@ export const actors = {
         /**
          * Allow a frontend connection after your backend checks the user's access.
          * @example
-         * const grant = await actors.ChatHistory.prepareWebsocket({ actorId: "actor-id", metadata })
+         * const grant = await actors.PiAgent.prepareWebsocket({ actorId: "actor-id", metadata })
          */
         prepareWebsocket(authorization, options = {}, dependencies = {}) {
-            return new ActorProxy(options, dependencies).handle({ ...authorization, actorName: "ChatHistory" })
+            return new ActorProxy(options, dependencies).handle({ ...authorization, actorName: "PiAgent" })
         }
     }
 }
 /**
  * Allow a frontend connection after your backend checks the user's access.
  * @example
- * const grant = await ActorProxy.handle({ actorName: "ChatHistory", actorId: "actor-id", metadata })
+ * const grant = await ActorProxy.handle({ actorName: "PiAgent", actorId: "actor-id", metadata })
  */
 export class ActorProxy extends $SocketProxy {
     constructor(options = {}, dependencies = {}) {
-        super({ ["ChatHistory"]: {} }, options, dependencies)
+        super({ ["PiAgent"]: {} }, options, dependencies)
     }
     handle(authorization) {
         return super.handle(authorization)

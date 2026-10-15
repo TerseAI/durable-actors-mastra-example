@@ -9,27 +9,27 @@ const chatBody = t.Object({ prompt: t.String({ minLength: 1, maxLength: 10_000 }
 export const app = new Elysia()
   .post(
     "/api/chat/:chatId/socket",
-    ({ params }) => actors.ChatHistory.prepareWebsocket({ actorId: params.chatId, metadata: null }),
+    ({ params }) => actors.PiAgent.prepareWebsocket({ actorId: params.chatId, metadata: null }),
     { params: chatParams },
   )
   .post(
     "/api/chat/:chatId/reset",
     async ({ params, set }) => {
-      await actors.ChatHistory.get(params.chatId).reset();
+      await actors.PiAgent.get(params.chatId).reset();
       set.status = 204;
     },
     { params: chatParams },
   )
   .post("/api/chat/:chatId/prompt",
     async ({ params, body, set }) => {
-      await actors.ChatHistory.get(params.chatId).prompt(body.prompt);
+      await actors.PiAgent.get(params.chatId).prompt(body.prompt);
       set.status = 204;
     },
     { params: chatParams, body: chatBody },
   )
   .post("/api/chat/:chatId/meteor", 
     async ({ params, set }) => {
-    await actors.ChatHistory.get(params.chatId).meteorHitsDatacenter();
+    await actors.PiAgent.get(params.chatId).ringGoesInMountDoom();
     set.status = 204;
   }, { params: chatParams });
 
