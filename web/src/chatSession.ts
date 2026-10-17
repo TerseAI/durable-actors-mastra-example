@@ -2,11 +2,17 @@
 
 // Mirrors the event types in src/actors.ts.
 export type Message = { role: "user" | "assistant"; content: string };
+export type Preview =
+  | { status: "starting" }
+  | { status: "ready"; url: string }
+  | { status: "stopped" }
+  | { status: "error"; message: string };
 type ChatEvent =
   | { type: "history"; messages: Message[] }
   | { type: "start"; prompt: string }
   | { type: "delta"; text: string }
-  | { type: "done" };
+  | { type: "done" }
+  | { type: "preview"; preview: Preview };
 
 export type Connection = "connecting" | "connected" | "crashed";
 export type ChatMessage = Message & { status?: "pending" | "interrupted" };
@@ -16,6 +22,8 @@ export type ChatSnapshot = {
   busy: boolean;
   messages: ChatMessage[];
   draft: string;
+  /** Unset until the actor reports its sandbox. */
+  preview?: Preview;
 };
 
 export const chatIdPattern = /^[a-zA-Z0-9_-]{1,64}$/;
@@ -53,12 +61,17 @@ export class ChatSession {
   }
 
   open(chatId: string) {
-    this.update({ chatId, messages: [], draft: "" });
+    this.update({ chatId, messages: [], draft: "", preview: undefined });
     void this.connect();
   }
 
   setDraft(draft: string) {
     this.update({ draft });
+  }
+
+  /** Points the preview at any URL, until the actor reports its own. */
+  setPreviewUrl(url: string) {
+    this.update({ preview: { status: "ready", url } });
   }
 
   /** Replies stream back over the socket; this only reports whether the actor accepted the prompt. */
@@ -155,6 +168,9 @@ export class ChatSession {
           busy: false,
           messages: messages.map(({ status, ...message }) => status === "pending" ? message : { ...message, status }),
         });
+        break;
+      case "preview":
+        this.update({ preview: event.preview });
         break;
     }
   }

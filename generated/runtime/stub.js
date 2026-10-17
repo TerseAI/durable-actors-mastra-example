@@ -8,7 +8,17 @@ function createActorStub(actorName, actorId, methods, transport) {
     const stub = Object.create(null);
     for (const method of methods) {
         validateActorComponent("actor method", method.name);
-        if (["then", "connect", "broadcast", "onConnect", "onMessage", "onDisconnect"].includes(method.name))
+        if ([
+            "then",
+            "connect",
+            "broadcast",
+            "db",
+            "alarm",
+            "onConnect",
+            "onMessage",
+            "onDisconnect",
+            "onAlarm"
+        ].includes(method.name))
             throw new ActorDefinitionError(`actor method ${actorName}.${method.name} is reserved`);
         if (Object.hasOwn(stub, method.name))
             throw new ActorDefinitionError(`duplicate actor method ${actorName}.${method.name}`);

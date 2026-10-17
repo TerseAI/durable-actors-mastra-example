@@ -26,7 +26,7 @@ export interface ActorInvocation extends ActorAddress {
     readonly method: string;
     readonly args: readonly JsonValue[];
 }
-type ActorRejectionReason = "stale_owner" | "host_unavailable" | "upstream_not_reached";
+type ActorRejectionReason = "host_unavailable" | "upstream_not_reached";
 export interface ActorResponseMetadata {
     readonly routingMs: number;
     readonly durationMs: number;

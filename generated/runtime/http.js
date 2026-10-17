@@ -84,7 +84,7 @@ function nonnegativeFiniteNumber(value) {
     return typeof value === "number" && Number.isFinite(value) && value >= 0;
 }
 function rejectionReason(value) {
-    return value === "stale_owner" || value === "host_unavailable" || value === "upstream_not_reached";
+    return value === "host_unavailable" || value === "upstream_not_reached";
 }
 export function connectionRefused(error, ancestors = new Set()) {
     if (!isRecord(error) || ancestors.has(error))

@@ -1,7 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent } from "react";
 
 import { ChatPane, type SplitDirection } from "./ChatPane";
 import { ChatSession, chatIdPattern, newChatId } from "./chatSession";
+import { PreviewPane } from "./PreviewPane";
+
+const minChatWidth = 25;
+const maxChatWidth = 75;
+const clampChatWidth = (percent: number) => Math.min(maxChatWidth, Math.max(minChatWidth, percent));
 
 type Layout =
   | { type: "pane"; id: string }
@@ -49,7 +54,25 @@ export function App() {
   const [layout, setLayout] = useState(initialLayout);
   const [activeId, setActiveId] = useState(() => firstPane(layout));
   const [focusId, setFocusId] = useState<string>();
+  const [chatWidth, setChatWidth] = useState(40);
+  const [resizing, setResizing] = useState(false);
   const single = countPanes(layout) === 1;
+
+  function onDividerPointerDown(event: PointerEvent<HTMLDivElement>) {
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setResizing(true);
+  }
+
+  function onDividerPointerMove(event: PointerEvent<HTMLDivElement>) {
+    if (resizing) setChatWidth(clampChatWidth(event.clientX / window.innerWidth * 100));
+  }
+
+  function onDividerKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
+    const step = ({ ArrowLeft: -2, ArrowRight: 2 } as Record<string, number>)[event.key];
+    if (!step) return;
+    event.preventDefault();
+    setChatWidth(width => clampChatWidth(width + step));
+  }
 
   function split(paneId: string, direction: SplitDirection) {
     const next = addPane();
@@ -111,8 +134,26 @@ export function App() {
   }
 
   return (
-    <main className="panes" aria-label="Chat workspace" data-single={String(single)}>
-      {render(layout)}
-    </main>
+    <div className="app" style={{ "--chat-width": `${chatWidth}%` } as CSSProperties} data-resizing={resizing || undefined}>
+      <main className="panes" aria-label="Chat workspace" data-single={String(single)}>
+        {render(layout)}
+      </main>
+      <div
+        className="divider"
+        role="separator"
+        aria-label="Resize chat and preview"
+        aria-orientation="vertical"
+        aria-valuemin={minChatWidth}
+        aria-valuemax={maxChatWidth}
+        aria-valuenow={Math.round(chatWidth)}
+        tabIndex={0}
+        onPointerDown={onDividerPointerDown}
+        onPointerMove={onDividerPointerMove}
+        onPointerUp={() => setResizing(false)}
+        onPointerCancel={() => setResizing(false)}
+        onKeyDown={onDividerKeyDown}
+      />
+      <PreviewPane key={activeId} session={sessions.get(activeId)!} />
+    </div>
   );
 }

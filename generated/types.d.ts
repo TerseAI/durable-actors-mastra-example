@@ -5,7 +5,7 @@ export interface ActorTypes {
 interface $PiAgentContract {
     Metadata: null
     Incoming: string
-    Outgoing: ChatEvent
+    Outgoing: ChatEvent | Preview
     State: {}
     Methods: {
         prompt(text: string): Promise<string>
@@ -37,6 +37,21 @@ type ChatMessage =
     | {
           role: "assistant"
           content: string
+      }
+type Preview =
+    | {
+          status: "starting"
+      }
+    | {
+          status: "ready"
+          url: string
+      }
+    | {
+          status: "stopped"
+      }
+    | {
+          status: "error"
+          message: string
       }
 
 export {}
