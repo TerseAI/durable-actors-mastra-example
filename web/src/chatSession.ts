@@ -1,36 +1,18 @@
 /** Owns one pane's actor socket outside React, so panes keep their connection when the layout changes. */
+import { applyImmutable, type Op } from "@earendil-works/chord/delta";
+import type { ConversationView } from "@earendil-works/pi-durable";
 
-// Mirrors the event types in src/actors.ts.
-export type Message = { role: "user" | "assistant"; content: string };
-export type Preview =
-  | { status: "starting" }
-  | { status: "ready"; url: string }
-  | { status: "stopped" }
-  | { status: "error"; message: string };
-// `toolCallId`, `args`, and `isError` are optional extras; calls pair by `toolCallId`, then `taskId`, then name.
-type ToolEvent = { toolName: string; taskId?: string; toolCallId?: string };
-type ChatEvent =
-  | { type: "history"; messages: Message[] }
-  | { type: "start"; prompt: string }
-  | { type: "delta"; text: string }
-  | ({ type: "tool_start"; args?: Record<string, unknown> } & ToolEvent)
-  | ({ type: "tool_end"; isError?: boolean } & ToolEvent)
-  | { type: "done" };
+import type { actors } from "../../generated/index.js";
+
+type Outgoing = actors.PiAgent.Outgoing;
+export type Preview = Extract<Outgoing, { status: string }>;
 
 export type Connection = "connecting" | "connected" | "crashed";
-export type ToolCall = {
-  role: "tool";
-  id?: string;
-  toolName: string;
-  args?: Record<string, unknown>;
-  status: "running" | "done" | "error" | "interrupted";
-};
-export type ChatMessage = (Message & { status?: "pending" | "interrupted" }) | ToolCall;
 export type ChatSnapshot = {
   chatId: string;
   connection: Connection;
   busy: boolean;
-  messages: ChatMessage[];
+  view?: ConversationView;
   draft: string;
   /** Unset until the actor reports its sandbox. */
   preview?: Preview;
@@ -53,7 +35,7 @@ export class ChatSession {
   private snapshot: ChatSnapshot;
 
   constructor(chatId: string) {
-    this.snapshot = { chatId, connection: "connecting", busy: false, messages: [], draft: "" };
+    this.snapshot = { chatId, connection: "connecting", busy: false, draft: "" };
   }
 
   subscribe = (listener: () => void) => {
@@ -71,7 +53,7 @@ export class ChatSession {
   }
 
   open(chatId: string) {
-    this.update({ chatId, messages: [], draft: "", preview: undefined });
+    this.update({ chatId, view: undefined, draft: "", preview: undefined });
     void this.connect();
   }
 
@@ -84,7 +66,7 @@ export class ChatSession {
     this.update({ preview: { status: "ready", url } });
   }
 
-  /** Replies stream back over the socket; this only reports whether the actor accepted the prompt. */
+  /** Replies stream back over the socket as view ops; this only reports whether the actor accepted the prompt. */
   async prompt(prompt: string) {
     this.update({ busy: true });
     try {
@@ -97,8 +79,9 @@ export class ChatSession {
       return true;
     } catch (error) {
       console.error(error);
-      this.update({ busy: false });
       return false;
+    } finally {
+      this.update({ busy: false });
     }
   }
 
@@ -134,87 +117,27 @@ export class ChatSession {
         if (current === this.generation) this.receive(JSON.parse(data));
       };
       socket.onclose = () => {
-        if (current === this.generation) this.crash();
+        if (current === this.generation) this.update({ connection: "crashed", busy: false });
       };
     } catch (error) {
       console.error(error);
-      if (current === this.generation) this.crash();
+      if (current === this.generation) this.update({ connection: "crashed", busy: false });
     }
   }
 
-  private crash() {
-    this.update({
-      connection: "crashed",
-      busy: false,
-      messages: this.snapshot.messages.map(message =>
-        message.status === "pending" || message.status === "running" ? { ...message, status: "interrupted" } : message),
-    });
-  }
-
-  private receive(event: ChatEvent | Preview) {
+  private receive(event: Outgoing) {
     if ("status" in event) {
       this.update({ preview: event });
-      return;
-    }
-    const { messages } = this.snapshot;
-    switch (event.type) {
-      case "history":
-        this.update({ connection: "connected", busy: false, messages: event.messages });
-        break;
-      case "start":
-        this.update({
-          busy: true,
-          messages: [
-            ...messages,
-            { role: "user", content: event.prompt, status: "pending" },
-            { role: "assistant", content: "", status: "pending" },
-          ],
-        });
-        break;
-      case "delta": {
-        const last = messages.at(-1);
-        if (last?.role !== "assistant" || last.status !== "pending") break;
-        this.update({ messages: [...messages.slice(0, -1), { ...last, content: last.content + event.text }] });
-        break;
+    } else if (event.type === "view") {
+      this.update({ connection: "connected", view: event.view as ConversationView });
+    } else if (this.snapshot.view) {
+      try {
+        this.update({ view: applyImmutable(this.snapshot.view, event.ops as readonly Op[]) });
+      } catch (error) {
+        // Ops only apply to the revision they came from; a fresh view resyncs.
+        console.error(error);
+        void this.connect();
       }
-      case "tool_start": {
-        // The call slots in after any text streamed so far; later text continues in a fresh segment below it.
-        const last = messages.at(-1);
-        const kept = last?.role === "assistant" && last.status === "pending" && !last.content ? messages.slice(0, -1) : messages;
-        this.update({
-          busy: true,
-          messages: [
-            ...kept,
-            { role: "tool", id: event.toolCallId ?? event.taskId, toolName: event.toolName, args: event.args, status: "running" },
-            { role: "assistant", content: "", status: "pending" },
-          ],
-        });
-        break;
-      }
-      case "tool_end": {
-        const id = event.toolCallId ?? event.taskId;
-        const running = (message: ChatMessage): message is ToolCall => message.role === "tool" && message.status === "running";
-        let index = id ? messages.findLastIndex(message => running(message) && message.id === id) : -1;
-        if (index < 0) index = messages.findLastIndex(message => running(message) && message.toolName === event.toolName);
-        const call = messages[index];
-        if (call?.role !== "tool") break;
-        this.update({ messages: messages.with(index, { ...call, status: event.isError ? "error" : "done" }) });
-        break;
-      }
-      case "done":
-        this.update({ busy: false, messages: settle(messages) });
-        break;
     }
   }
-}
-
-/** Finalizes a turn: drops the empty segment a trailing tool call leaves behind. */
-function settle(messages: ChatMessage[]): ChatMessage[] {
-  return messages.flatMap((message, index): ChatMessage[] => {
-    if (message.role === "tool") return [message.status === "running" ? { ...message, status: "done" } : message];
-    if (message.status !== "pending") return [message];
-    if (!message.content && messages[index - 1]?.role === "tool") return [];
-    const { status, ...settled } = message;
-    return [settled];
-  });
 }

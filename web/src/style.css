@@ -327,6 +327,10 @@ a {
   padding-bottom: 8px;
 }
 
+.message > :is(.content, .tool-call) + :is(.content, .tool-call) {
+  margin-top: 8px;
+}
+
 .tool-call {
   display: flex;
   align-items: center;

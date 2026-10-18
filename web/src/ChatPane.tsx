@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type FormEvent, type KeyboardEvent } from "react";
 
-import type { ChatSession, Connection, ToolCall } from "./chatSession";
+import type { ChatSession, Connection } from "./chatSession";
+import { Transcript } from "./Transcript";
 
 export type SplitDirection = "horizontal" | "vertical";
 
@@ -19,44 +20,8 @@ const connectionLabels: Record<Connection, string> = {
   crashed: "Actor crashed",
 };
 
-const toolStatusLabels: Record<ToolCall["status"], string> = {
-  running: "Running",
-  done: "Finished",
-  error: "Failed",
-  interrupted: "Interrupted",
-};
-
-/** The most telling argument, like a command or a path, shown beside the tool name. */
-function toolSummary(args: ToolCall["args"]) {
-  if (!args) return;
-  for (const key of ["command", "cmd", "path", "file_path", "filePath", "pattern", "query", "url"]) {
-    if (typeof args[key] === "string") return args[key];
-  }
-  return Object.values(args).find((value): value is string => typeof value === "string");
-}
-
-function ToolCallRow({ call }: { call: ToolCall }) {
-  const summary = toolSummary(call.args);
-  return (
-    <div className="tool-call" data-status={call.status}>
-      <span className="tool-icon" aria-hidden="true">
-        {call.status === "running" && <span className="tool-spinner" />}
-        {call.status === "done" && (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 5 5L20 7" /></svg>
-        )}
-        {(call.status === "error" || call.status === "interrupted") && (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="m6 6 12 12M18 6 6 18" /></svg>
-        )}
-      </span>
-      <span className="tool-name">{call.toolName}</span>
-      {summary && <span className="tool-summary" title={summary}>{summary}</span>}
-      <span className="tool-status">{toolStatusLabels[call.status]}</span>
-    </div>
-  );
-}
-
 export function ChatPane({ session, active, autoFocus, onActivate, onSplit, onClose }: Props) {
-  const { chatId, connection, busy, messages, draft } = useSyncExternalStore(session.subscribe, session.getSnapshot);
+  const { chatId, connection, busy, view, draft } = useSyncExternalStore(session.subscribe, session.getSnapshot);
   const [room, setRoom] = useState(chatId);
   const scrollArea = useRef<HTMLDivElement>(null);
   const followReply = useRef(true);
@@ -75,7 +40,7 @@ export function ChatPane({ session, active, autoFocus, onActivate, onSplit, onCl
   useLayoutEffect(() => {
     const area = scrollArea.current;
     if (area && followReply.current) area.scrollTop = area.scrollHeight;
-  }, [messages]);
+  }, [view]);
 
   function onScroll() {
     const area = scrollArea.current!;
@@ -157,20 +122,7 @@ export function ChatPane({ session, active, autoFocus, onActivate, onSplit, onCl
       <div className="workspace">
         <div ref={scrollArea} className="scroll-area" onScroll={onScroll}>
           <div className="messages" role="log" aria-label="Conversation" aria-live="polite" aria-relevant="additions">
-            {messages.map((message, index) => {
-              // Text and tool calls from one assistant turn share a single speaker label.
-              const continued = message.role !== "user" && index > 0 && messages[index - 1].role !== "user";
-              return (
-                <article
-                  key={index}
-                  className={`message ${message.role}${message.status ? ` ${message.status}` : ""}`}
-                  data-continued={continued || undefined}
-                >
-                  {!continued && <div className="speaker">{message.role === "user" ? "You" : "Assistant"}</div>}
-                  {message.role === "tool" ? <ToolCallRow call={message} /> : <div className="content">{message.content}</div>}
-                </article>
-              );
-            })}
+            {view && <Transcript view={view} />}
           </div>
         </div>
         <div className="composer-area">

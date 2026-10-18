@@ -5,7 +5,7 @@ export interface ActorTypes {
 interface $PiAgentContract {
     Metadata: null
     Incoming: string
-    Outgoing: ChatEvent | Preview
+    Outgoing: Outgoing
     State: {}
     Methods: {
         prompt(text: string): Promise<string>
@@ -13,31 +13,16 @@ interface $PiAgentContract {
         ringGoesInMountDoom(): Promise<void>
     }
 }
-type ChatEvent =
+type Outgoing =
     | {
-          type: "history"
-          messages: ChatMessage[]
+          type: "view"
+          view: unknown
       }
     | {
-          type: "start"
-          prompt: string
+          type: "ops"
+          ops: unknown
       }
-    | {
-          type: "delta"
-          text: string
-      }
-    | {
-          type: "done"
-      }
-type ChatMessage =
-    | {
-          role: "user"
-          content: string
-      }
-    | {
-          role: "assistant"
-          content: string
-      }
+    | Preview
 type Preview =
     | {
           status: "starting"
