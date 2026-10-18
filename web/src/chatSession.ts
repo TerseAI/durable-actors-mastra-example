@@ -7,15 +7,25 @@ export type Preview =
   | { status: "ready"; url: string }
   | { status: "stopped" }
   | { status: "error"; message: string };
+// `toolCallId`, `args`, and `isError` are optional extras; calls pair by `toolCallId`, then `taskId`, then name.
+type ToolEvent = { toolName: string; taskId?: string; toolCallId?: string };
 type ChatEvent =
   | { type: "history"; messages: Message[] }
   | { type: "start"; prompt: string }
   | { type: "delta"; text: string }
-  | { type: "done" }
-  | { type: "preview"; preview: Preview };
+  | ({ type: "tool_start"; args?: Record<string, unknown> } & ToolEvent)
+  | ({ type: "tool_end"; isError?: boolean } & ToolEvent)
+  | { type: "done" };
 
 export type Connection = "connecting" | "connected" | "crashed";
-export type ChatMessage = Message & { status?: "pending" | "interrupted" };
+export type ToolCall = {
+  role: "tool";
+  id?: string;
+  toolName: string;
+  args?: Record<string, unknown>;
+  status: "running" | "done" | "error" | "interrupted";
+};
+export type ChatMessage = (Message & { status?: "pending" | "interrupted" }) | ToolCall;
 export type ChatSnapshot = {
   chatId: string;
   connection: Connection;
@@ -137,11 +147,15 @@ export class ChatSession {
       connection: "crashed",
       busy: false,
       messages: this.snapshot.messages.map(message =>
-        message.status === "pending" ? { ...message, status: "interrupted" } : message),
+        message.status === "pending" || message.status === "running" ? { ...message, status: "interrupted" } : message),
     });
   }
 
-  private receive(event: ChatEvent) {
+  private receive(event: ChatEvent | Preview) {
+    if ("status" in event) {
+      this.update({ preview: event });
+      return;
+    }
     const { messages } = this.snapshot;
     switch (event.type) {
       case "history":
@@ -163,15 +177,44 @@ export class ChatSession {
         this.update({ messages: [...messages.slice(0, -1), { ...last, content: last.content + event.text }] });
         break;
       }
-      case "done":
+      case "tool_start": {
+        // The call slots in after any text streamed so far; later text continues in a fresh segment below it.
+        const last = messages.at(-1);
+        const kept = last?.role === "assistant" && last.status === "pending" && !last.content ? messages.slice(0, -1) : messages;
         this.update({
-          busy: false,
-          messages: messages.map(({ status, ...message }) => status === "pending" ? message : { ...message, status }),
+          busy: true,
+          messages: [
+            ...kept,
+            { role: "tool", id: event.toolCallId ?? event.taskId, toolName: event.toolName, args: event.args, status: "running" },
+            { role: "assistant", content: "", status: "pending" },
+          ],
         });
         break;
-      case "preview":
-        this.update({ preview: event.preview });
+      }
+      case "tool_end": {
+        const id = event.toolCallId ?? event.taskId;
+        const running = (message: ChatMessage): message is ToolCall => message.role === "tool" && message.status === "running";
+        let index = id ? messages.findLastIndex(message => running(message) && message.id === id) : -1;
+        if (index < 0) index = messages.findLastIndex(message => running(message) && message.toolName === event.toolName);
+        const call = messages[index];
+        if (call?.role !== "tool") break;
+        this.update({ messages: messages.with(index, { ...call, status: event.isError ? "error" : "done" }) });
+        break;
+      }
+      case "done":
+        this.update({ busy: false, messages: settle(messages) });
         break;
     }
   }
+}
+
+/** Finalizes a turn: drops the empty segment a trailing tool call leaves behind. */
+function settle(messages: ChatMessage[]): ChatMessage[] {
+  return messages.flatMap((message, index): ChatMessage[] => {
+    if (message.role === "tool") return [message.status === "running" ? { ...message, status: "done" } : message];
+    if (message.status !== "pending") return [message];
+    if (!message.content && messages[index - 1]?.role === "tool") return [];
+    const { status, ...settled } = message;
+    return [settled];
+  });
 }

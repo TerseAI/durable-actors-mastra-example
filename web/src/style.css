@@ -317,6 +317,73 @@ a {
   color: var(--crashed);
 }
 
+/* Tool calls sit inline in the assistant's turn, between its text segments. */
+
+.message[data-continued] {
+  padding-top: 0;
+}
+
+.message:has(+ .message[data-continued]) {
+  padding-bottom: 8px;
+}
+
+.tool-call {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 72ch;
+  padding: 7px 12px;
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.tool-icon {
+  display: grid;
+  flex: 0 0 14px;
+  place-items: center;
+  height: 14px;
+}
+
+.tool-call[data-status="done"] .tool-icon { color: var(--connected); }
+.tool-call[data-status="error"] .tool-icon,
+.tool-call[data-status="interrupted"] .tool-icon { color: var(--crashed); }
+
+.tool-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid #ccc;
+  border-top-color: var(--text);
+  border-radius: 50%;
+  animation: tool-spin 700ms linear infinite;
+}
+
+@keyframes tool-spin {
+  to { transform: rotate(360deg); }
+}
+
+.tool-name {
+  flex-shrink: 0;
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 600;
+}
+
+.tool-summary {
+  min-width: 0;
+  overflow: hidden;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tool-status {
+  flex-shrink: 0;
+  margin-left: auto;
+  font-size: 12px;
+}
+
 /* Message composer */
 
 .composer-area {
@@ -624,6 +691,7 @@ kbd { margin-right: 4px; font: inherit; font-weight: 600; }
   .pane[data-state="connecting"] .loading-mascot img,
   .pane[data-state="connecting"] .loading-ground,
   .preview .loading-mascot img,
-  .preview .loading-ground { animation: none; }
+  .preview .loading-ground,
+  .tool-spinner { animation: none; }
   .loading { transition-duration: 100ms; }
 }
